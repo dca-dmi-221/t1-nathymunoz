@@ -4,14 +4,16 @@ let icon;
 
 //canciones
 let cancion;
-let canciones = ["./canciones/Sono Bisque Doll.mp3", "./canciones/The_Rumbling.mp3"];
+let canciones = ["./canciones/Sono Bisque Doll.mp3", "./canciones/The_Rumbling.mp3", "./canciones/Lost in paradise.mp3", "./canciones/Zankyou Sanka.mp3", "./canciones/Kyokaisen.mp3"];
 
 //botones
-let play;
-let nextButtom;
-let prevButtom;
+let playbutton;
+let stopbutton;
+let nextButton;
+let prevButton;
 let button;
 
+//funcionalidad del slider
 let input;
 let greeting;
 
@@ -22,6 +24,10 @@ let reproducir = false;
 let reproduciendo = false;
 let data;
 let nombre = false;
+
+let status = 0;
+
+let vol;
 
 const OUTPUT = "HEAD"; // VOLUME | HEAD
 
@@ -58,6 +64,7 @@ function setup() {
   dropZone.dragOver(resaltado);
   dropZone.dragLeave(noResaltado);
   dropZone.drop(cargarArchivo, noResaltado);
+  
   fondo = new loadImage("./images/Pantalla.jpg");
   icon = new loadImage("./images/Icono.png");
 
@@ -67,6 +74,21 @@ function setup() {
   button = createButton('submit');
   button.position(input.x + input.width, 200);
   button.mousePressed(greet);
+
+  nextButton = new NextButton();
+  prevButton = new PrevButton();
+
+    // play button
+    playbutton = createButton('Play');
+    playbutton.position(600, 660);
+    playbutton.mousePressed(playsound);
+    
+    // stop button
+    stopbutton = createButton('Stop');
+    stopbutton.position(640, 660);
+    stopbutton.mousePressed(stopsound);
+    
+
 }
 
 function stopAll() {
@@ -74,6 +96,14 @@ function stopAll() {
     elemento.stop();
   });
   nombre = false;
+
+  button = createButton("COMENZAR");
+  button.position(50, 10);
+  button.mousePressed(suPlay);
+
+  slider = createSlider(0, 1, 0.5, 0.01);
+  slider.position(150, 10);
+  slider.style('width', '200px');
 }
 
 function pintarNombre(file) {
@@ -117,56 +147,49 @@ function draw() {
   imageMode(CENTER);
   image(fondo, 640, 360, 1280, 720);
 
+  //nextButton.pintar();
+  //prevButton.pintar();
+
   textAlign(CENTER);
   textSize(18);
-  text('Inserta el nombre', 95, 190);
   fill(237, 224, 245);
-
-  
-
+  text('Inserta el nombre', 95, 190);
 
   if (nombre) {
     pintarNombre(data);
   }
 
-  if (reproduciendo) {
-    noStroke();
-    
-
-  } else {
-    rect(620, 670, 8, 20, 2);
-    rect(630, 670, 8, 20, 2);
-    triangle(620, 675, 600, 665, 600, 685);
-  }
-
   playlists.forEach((element, index) => {
-    fill(255);
-    text(element.name, 10, 20)
-    console.log(element.name)
+    text(element.nombre, 30, 250)
+    console.log(element.nombre)
   })
+
+  if (nextButton.isPressed) {
+    next();
+  }
 
   rectMode(CORNER);
   rect(this.rectangle.x,this.rectangle.y,this.rectangle.w,this.rectangle.h)
   ellipseMode(CENTER)
   ellipse(this.bola.x,this.bola.y,this.bola.r*2)
 
-
 }
 
 function mousePressed() {
-  if (mouseX > 288 && mouseX < 480) {
-    if (mouseY > 265 && mouseY < 441) {
+  if (mouseX > 375 && mouseX < 506) {
+    if (mouseY > 171 && mouseY < 334) {
       stopAll();
       cargarCanciones[0].play();
       let archivo = cargarCanciones[0].file;
       archivo = archivo.split('/');
       data = archivo[2];
       nombre = true;
+      console.log("Se reproduce 1");
     }
   }
 
-  if (mouseX > 520 && mouseX < 709) {
-    if (mouseY > 267 && mouseY < 442) {
+  if (mouseX > 535 && mouseX < 668) {
+    if (mouseY > 171 && mouseY < 336) {
       stopAll();
       cargarCanciones[1].play();
       let archivo = cargarCanciones[1].file;
@@ -178,10 +201,50 @@ function mousePressed() {
     }
   }
 
+  if (mouseX > 691 && mouseX < 823) {
+    if (mouseY > 169 && mouseY < 336) {
+      stopAll();
+      cargarCanciones[2].play();
+      let archivo = cargarCanciones[2].file;
+      archivo = archivo.split('/');
+      data = archivo[2];
+      nombre = true;
+      console.log("Se reproduce 3");
+      console.log(cargarCanciones);
+    }
+  }
+
+  if (mouseX > 375 && mouseX < 510) {
+    if (mouseY > 360 && mouseY < 522) {
+      stopAll();
+      cargarCanciones[3].play();
+      let archivo = cargarCanciones[3].file;
+      archivo = archivo.split('/');
+      data = archivo[2];
+      nombre = true;
+      console.log("Se reproduce 4");
+      console.log(cargarCanciones);
+    }
+  }
+
+  if (mouseX > 532 && mouseX < 668) {
+    if (mouseY > 360 && mouseY < 522) {
+      stopAll();
+      cargarCanciones[4].play();
+      let archivo = cargarCanciones[4].file;
+      archivo = archivo.split('/');
+      data = archivo[2];
+      nombre = true;
+      console.log("Se reproduce 5");
+      console.log(cargarCanciones);
+    }
+  }
+
   console.log(mouseX, mouseY);
 }
 
 function mouseDragged(){
+  //Slider volumen
   if(dist(mouseX,mouseY, this.bola.x,this.bola.y) < this.bola.r){
     const bonderies = {
       x1: this.rectangle.x,
@@ -201,4 +264,20 @@ function mouseDragged(){
 
     }
   }
+}
+
+function playsound() 
+{
+  if(soundtrack.isPlaying() == false) 
+  {
+    soundtrack.play();
+  } 
+}
+ 
+function stopsound() 
+{
+  if(soundtrack.isPlaying() == true) 
+  {
+    soundtrack.pause();
+  } 
 }
