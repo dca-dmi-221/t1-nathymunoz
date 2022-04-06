@@ -5,7 +5,8 @@ class Bar {
     }
 
     pintar(l) {
-        fill(255);
+        noStroke();
+        fill(135, 14, 217);
         rect(0, 620, l , 10);
     }
 }
