@@ -4,18 +4,23 @@ let icon;
 
 //canciones
 let cancion;
-let canciones = ["./canciones/Sono Bisque Doll.mp3", "./canciones/The_Rumbling.mp3", "./canciones/Lost in paradise.mp3", "./canciones/Zankyou Sanka.mp3", "./canciones/Kyokaisen.mp3"];
+let canciones = ["./canciones/Sono Bisque Doll.mp3", "./canciones/The Rumbling.mp3", "./canciones/Lost in paradise.mp3", "./canciones/Zankyou Sanka.mp3", "./canciones/Kyokaisen.mp3"];
 
 //botones
 let playbutton;
 let stopbutton;
-let nextButton;
-let prevButton;
 let button;
+let bar;
 
 //funcionalidad del slider
 let input;
 let greeting;
+
+// index
+let r;
+
+// largo reproduccion
+let bl=0;
 
 let playlists = [];
 
@@ -26,6 +31,7 @@ let data;
 let nombre = false;
 
 let status = 0;
+let volume = 0.5;
 
 let vol;
 
@@ -45,7 +51,7 @@ this.rectangle = {
 }
 
 this.bola = {
-  x: 1080,
+  x: 1218,
   y: 678,
   r: 10
 }
@@ -75,18 +81,17 @@ function setup() {
   button.position(input.x + input.width, 200);
   button.mousePressed(greet);
 
-  nextButton = new NextButton();
-  prevButton = new PrevButton();
+  bar = new Bar();
 
     // play button
-    playbutton = createButton('Play');
-    playbutton.position(600, 660);
-    playbutton.mousePressed(playsound);
-    
-    // stop button
-    stopbutton = createButton('Stop');
-    stopbutton.position(640, 660);
-    stopbutton.mousePressed(stopsound);
+  playbutton = createButton('Play');
+  playbutton.position(600, 660);
+  playbutton.mousePressed(playsound);
+  
+  // stop button
+  stopbutton = createButton('Stop');
+  stopbutton.position(640, 660);
+  stopbutton.mousePressed(stopsound);
     
 
 }
@@ -96,20 +101,24 @@ function stopAll() {
     elemento.stop();
   });
   nombre = false;
-
-  button = createButton("COMENZAR");
-  button.position(50, 10);
-  button.mousePressed(suPlay);
-
-  slider = createSlider(0, 1, 0.5, 0.01);
-  slider.position(150, 10);
-  slider.style('width', '200px');
 }
 
 function pintarNombre(file) {
   fill(255);
   textSize(15);
   text(file, 170, 670);
+}
+function pintarTiempo(segundos) {
+
+  let minutos = Math.floor((segundos / 60) % 60);
+  minutos = (minutos < 10)? '0' + minutos : minutos;
+  let segundo = Math.floor(segundos % 60);
+  segundo = (segundo < 10)? '0' + segundo : segundo;
+  let tiempo = minutos + ':' + segundo;
+  
+  fill(255);
+  textSize(15);
+  text(tiempo, 170, 690);
 }
 
 function cargarArchivo(file) {
@@ -147,8 +156,7 @@ function draw() {
   imageMode(CENTER);
   image(fondo, 640, 360, 1280, 720);
 
-  //nextButton.pintar();
-  //prevButton.pintar();
+  bar.pintar(bl);
 
   textAlign(CENTER);
   textSize(18);
@@ -157,86 +165,77 @@ function draw() {
 
   if (nombre) {
     pintarNombre(data);
+    pintarTiempo(round(cargarCanciones[r].currentTime()))
   }
 
   playlists.forEach((element, index) => {
     text(element.nombre, 30, 250)
     console.log(element.nombre)
-  })
-
-  if (nextButton.isPressed) {
-    next();
-  }
+  }) 
 
   rectMode(CORNER);
   rect(this.rectangle.x,this.rectangle.y,this.rectangle.w,this.rectangle.h)
   ellipseMode(CENTER)
   ellipse(this.bola.x,this.bola.y,this.bola.r*2)
 
+  if(r>=0){
+    bl= cargarCanciones[r].currentTime()*(1280/cargarCanciones[r].duration());
+  }
+
 }
 
 function mousePressed() {
   if (mouseX > 375 && mouseX < 506) {
     if (mouseY > 171 && mouseY < 334) {
-      stopAll();
-      cargarCanciones[0].play();
-      let archivo = cargarCanciones[0].file;
-      archivo = archivo.split('/');
-      data = archivo[2];
-      nombre = true;
-      console.log("Se reproduce 1");
+      reproduccion(0);
     }
   }
 
   if (mouseX > 535 && mouseX < 668) {
     if (mouseY > 171 && mouseY < 336) {
-      stopAll();
-      cargarCanciones[1].play();
-      let archivo = cargarCanciones[1].file;
-      archivo = archivo.split('/');
-      data = archivo[2];
-      nombre = true;
-      console.log("Se reproduce 2");
-      console.log(cargarCanciones);
+      reproduccion(1);
     }
   }
 
   if (mouseX > 691 && mouseX < 823) {
     if (mouseY > 169 && mouseY < 336) {
-      stopAll();
-      cargarCanciones[2].play();
-      let archivo = cargarCanciones[2].file;
-      archivo = archivo.split('/');
-      data = archivo[2];
-      nombre = true;
-      console.log("Se reproduce 3");
-      console.log(cargarCanciones);
+      reproduccion(2);
     }
   }
 
   if (mouseX > 375 && mouseX < 510) {
     if (mouseY > 360 && mouseY < 522) {
-      stopAll();
-      cargarCanciones[3].play();
-      let archivo = cargarCanciones[3].file;
-      archivo = archivo.split('/');
-      data = archivo[2];
-      nombre = true;
-      console.log("Se reproduce 4");
-      console.log(cargarCanciones);
+      reproduccion(3);
     }
   }
 
   if (mouseX > 532 && mouseX < 668) {
     if (mouseY > 360 && mouseY < 522) {
-      stopAll();
-      cargarCanciones[4].play();
-      let archivo = cargarCanciones[4].file;
-      archivo = archivo.split('/');
-      data = archivo[2];
-      nombre = true;
-      console.log("Se reproduce 5");
-      console.log(cargarCanciones);
+      reproduccion(4);
+    }
+  }
+
+  if (mouseX > 690 && mouseX < 719) {
+    if (mouseY > 663 && mouseY < 683) { 
+      next();
+    }
+  }
+
+  if (mouseX > 559 && mouseX < 589) { 
+    if (mouseY > 663 && mouseY < 683) { 
+      back();
+    }
+  }
+
+  if (mouseX >  505 && mouseX < 529) { 
+    if (mouseY > 664 && mouseY < 683) { 
+      timemenos();
+    }
+  }
+
+  if (mouseX >  749 && mouseX < 771) { 
+    if (mouseY > 664 && mouseY < 683) { 
+      timemas();
     }
   }
 
@@ -254,30 +253,76 @@ function mouseDragged(){
     if(isInRange){
       this.bola.x = mouseX;
       
-      if(OUTPUT === 'VOLUME') {
+      if(OUTPUT === 'HEAD') {
         const volume = map(mouseX, bonderies.x1,bonderies.x2, 0,100) / 100;
-        this.song.setVolume(volume)
-      } else if (OUTPUT === "HEAD") {
-        const head = map(mouseX, bonderies.x1,bonderies.x2, 0,this.song.duration());
-        this.song.jump(head)
+        for (let i = 0; i < cargarCanciones.length; i++) {
+          cargarCanciones[i].setVolume(volume)
+        }
+        
       }
 
     }
   }
 }
 
+
+function reproduccion(num){
+  stopAll();
+  cargarCanciones[num].play();
+  let archivo = cargarCanciones[num].file;
+  archivo = archivo.split('/');
+  data = archivo[2];
+  nombre = true;
+  r=num;
+}
+
 function playsound() 
 {
-  if(soundtrack.isPlaying() == false) 
+  console.log(cargarCanciones[r]);
+  if(r>=0) 
   {
-    soundtrack.play();
-  } 
+    if(cargarCanciones[r].isPlaying() == false)
+    {
+      cargarCanciones[r].play();  
+      console.log(cargarCanciones[r]);
+    }
+  }else{
+    reproduccion(0)
+  }
 }
  
 function stopsound() 
 {
-  if(soundtrack.isPlaying() == true) 
+  if(cargarCanciones[r].isPlaying() == true) 
   {
-    soundtrack.pause();
+    cargarCanciones[r].pause();
   } 
+}
+
+function next() 
+{
+  if(r<cargarCanciones.length-1) 
+  {
+    r=r+1;
+    reproduccion(r);
+  } 
+}
+
+function back() 
+{
+  if(r>0) 
+  {
+    r=r-1;
+    reproduccion(r);
+  } 
+}
+
+function timemas() 
+{
+    cargarCanciones[r].jump(cargarCanciones[r].currentTime()+10); 
+}
+
+function timemenos() 
+{
+    cargarCanciones[r].jump(cargarCanciones[r].currentTime()-10); 
 }
